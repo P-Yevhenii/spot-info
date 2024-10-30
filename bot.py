@@ -20,7 +20,8 @@ TG_USERS = ["454078708", "482953524"]
 
 client = ccxt.bybit({"api_key": BYBIT_API_KEY, "api_secret": BYBIT_API_SECRET})
 
-target_time = time(hour=3, minute=0, second=0)
+target_start = time(hour=8, minute=0, second=0)
+target_end = time(hour=22, minute=0, second=0)
 
 
 def get_spot_data(symbol="USDT/EUR"):
@@ -40,7 +41,7 @@ async def start(message: types.Message):
 async def scheduled_message(bot: Bot):
     while True:
         now = datetime.now().time()
-        if now >= target_time and now.hour == target_time.hour and now.minute == target_time.minute:
+        if target_start <= now <= target_end:
             price = get_spot_data()
             daily_message = f"Market: <b>Spot</b>\nPair: <b>EUR/USDT</b>\nPrice: <b>{price}</b>\n"
             for user in TG_USERS:
@@ -48,7 +49,7 @@ async def scheduled_message(bot: Bot):
                     await bot.send_message(user, daily_message, parse_mode="HTML")
                 except Exception as e:
                     print(f"User not start his chat with bot: {e}")  # write logs
-            await asyncio.sleep(60)
+            await asyncio.sleep(3600)
         await asyncio.sleep(1)
 
 
