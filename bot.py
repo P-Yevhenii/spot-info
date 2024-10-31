@@ -14,14 +14,16 @@ BOT_TOKEN = os.getenv('BOT_TOKEN')
 BYBIT_API_KEY = os.getenv('BYBIT_API_KEY')
 BYBIT_API_SECRET = os.getenv('BYBIT_API_SECRET')
 
+bot = Bot(token=BOT_TOKEN)
+
 router = Router()
 
 TG_USERS = ["454078708", "482953524"]
 
 client = ccxt.bybit({"api_key": BYBIT_API_KEY, "api_secret": BYBIT_API_SECRET})
 
-target_start = time(hour=8, minute=0, second=0)
-target_end = time(hour=22, minute=0, second=0)
+target_start = time(hour=7, minute=0, second=0)
+target_end = time(hour=23, minute=0, second=0)
 
 
 def get_spot_data(symbol="USDT/EUR"):
@@ -33,12 +35,7 @@ def get_spot_data(symbol="USDT/EUR"):
         print(f"Error fetching spot data: {e}")  # TODO: write logs
 
 
-@router.message(Command('start'))
-async def start(message: types.Message):
-    await message.answer(text="<b>The Bot for everyday EUR/USDT price!\n</b>", parse_mode="HTML")
-
-
-async def scheduled_message(bot: Bot):
+async def scheduled_message():
     while True:
         now = datetime.now().time()
         if target_start <= now <= target_end:
@@ -51,5 +48,16 @@ async def scheduled_message(bot: Bot):
                     print(f"User not start his chat with bot: {e}")  # write logs
             await asyncio.sleep(3600)
         await asyncio.sleep(1)
+
+
+@router.message(Command('start'))
+async def start(message: types.Message):
+    await message.answer(text="<b>Welcome to the Bot for everyday EUR/USDT price!\n</b>", parse_mode="HTML")
+
+
+
+
+
+
 
 
