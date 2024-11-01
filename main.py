@@ -7,12 +7,13 @@ dp = Dispatcher()
 
 async def main():
     dp.include_router(router)
+    task = None
     try:
-        await asyncio.gather(
-            dp.start_polling(bot),
-            scheduled_message())
-
+        task = asyncio.create_task(scheduled_message())
+        await dp.start_polling(bot)
+        await task
     finally:
+        task.cancel()
         await bot.session.close()
 
 
