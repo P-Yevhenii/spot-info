@@ -39,8 +39,10 @@ async def scheduled_message():
     while True:
         now = datetime.now().time()
         if target_start <= now <= target_end:
-            price = get_spot_data()
-            daily_message = f"Market: <b>Spot</b>\nPair: <b>EUR/USDT</b>\nPrice: <b>{price}</b>\n"
+            price_usdt = get_spot_data()
+            price_usdc = get_spot_data("USDC/EUR")
+            daily_message = (f"Market: <b>Spot</b>\nPair: <b>EUR/USDT</b>\nPrice: <b>{price_usdt}</b>\nPair: "
+                             f"<b>EUR/USDC</b>\nPrice: <b>{price_usdc}</b>\n")
             for user in TG_USERS:
                 try:
                     await bot.send_message(user, daily_message, parse_mode="HTML")
