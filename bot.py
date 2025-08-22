@@ -22,7 +22,7 @@ TG_USERS = ["454078708", "482953524"]
 
 client = ccxt.bybit({"api_key": BYBIT_API_KEY, "api_secret": BYBIT_API_SECRET})
 
-target_start = time(hour=7, minute=0, second=0)
+target_start = time(hour=6, minute=0, second=0)
 target_end = time(hour=23, minute=0, second=0)
 
 
@@ -32,23 +32,53 @@ def get_spot_data(symbol="USDT/EUR"):
         price = ticker['last']
         return price
     except Exception as e:
-        print(f"Error fetching spot data: {e}")  # TODO: write logs
+        print(f"Error fetching spot data: {e}")
+
+
+def get_trend(current, previous):
+    if current > previous:
+        return "⬆️"
+    elif current < previous:
+        return "⬇️"
+    else:
+        return "➡️"
 
 
 async def scheduled_message():
+    price_usdt = get_spot_data()
+    price_usdc = get_spot_data("USDC/EUR")
+    prev_price_usdt = price_usdt
+    prev_price_usdc = price_usdc
+
     while True:
         now = datetime.now().time()
         if target_start <= now <= target_end:
-            price_usdt = get_spot_data()
-            price_usdc = get_spot_data("USDC/EUR")
-            daily_message = (f"Market: <b>Spot</b>\nPair: <b>EUR/USDT</b>\nPrice: <b>{price_usdt}</b>\nPair: "
-                             f"<b>EUR/USDC</b>\nPrice: <b>{price_usdc}</b>\n")
+            daily_message = "<b>📊 Market spot: ByBit</b>\n\n<pre>"
+            daily_message += f"{'Pair':<12} {'Price':>10} {'Trend':>5}\n"
+            daily_message += "-" * 30 + "\n"
+            daily_message += f"🇪🇺/💲 EUR/USDT  {str(price_usdt):>10}  {get_trend(price_usdt, prev_price_usdt):>5}\n"
+            daily_message += f"🇪🇺/💵 EUR/USDC  {str(price_usdc):>10}  {get_trend(price_usdc, prev_price_usdc):>5}\n"
+            daily_message += "</pre>"
+
             for user in TG_USERS:
                 try:
                     await bot.send_message(user, daily_message, parse_mode="HTML")
                 except Exception as e:
-                    print(f"User not start his chat with bot: {e}")  # write logs
+                    print(f"User not start his chat with bot: {e}")
+
+            await bot.send_message(
+                chat_id="-1002905214084",
+                message_thread_id=203,
+                text=daily_message,
+                parse_mode="HTML",
+            )
             await asyncio.sleep(3600)
+
+            prev_price_usdc = price_usdc
+            prev_price_usdt = price_usdt
+            price_usdt = get_spot_data()
+            price_usdc = get_spot_data("USDC/EUR")
+
         await asyncio.sleep(1)
 
 
@@ -57,6 +87,10 @@ async def start(message: types.Message):
     await message.answer(text="<b>Welcome to the Bot for everyday EUR/USDT price!\n</b>", parse_mode="HTML")
 
 
+@router.message()
+async def get_chat_id(message: types.Message):
+    print("message.chat.id:", message.chat.id)
+    print("message.message_thread_id:", message.message_thread_id)
 
 
 
