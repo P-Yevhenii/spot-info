@@ -66,12 +66,12 @@ async def scheduled_message():
                 except Exception as e:
                     print(f"User not start his chat with bot: {e}")
 
-            await bot.send_message(
+            """await bot.send_message(
                 chat_id="-1002905214084",
                 message_thread_id=203,
                 text=daily_message,
                 parse_mode="HTML",
-            )
+            )"""
             await asyncio.sleep(3600)
 
             prev_price_usdc = price_usdc
