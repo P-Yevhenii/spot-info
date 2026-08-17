@@ -1,21 +1,23 @@
-from aiogram import Dispatcher
-from bot import router, bot, scheduled_message
 import asyncio
+import logging
+
+from aiogram import Dispatcher
+
+from bot import bot, router, scheduled_message
 
 dp = Dispatcher()
 
 
 async def main():
     dp.include_router(router)
-    task = None
+    scheduled_task = asyncio.create_task(scheduled_message())
     try:
-        task = asyncio.create_task(scheduled_message())
         await dp.start_polling(bot)
-        await task
     finally:
-        task.cancel()
-        await bot.session.close()
+        scheduled_task.cancel()
+        await asyncio.gather(scheduled_task, return_exceptions=True)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     asyncio.run(main())
